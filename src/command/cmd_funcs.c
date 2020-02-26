@@ -337,7 +337,7 @@ cmd_connect(ProfWin *window, const char *const command, gchar **args)
         return TRUE;
     }
 
-    gchar *opt_keys[] = { "server", "port", "tls", NULL };
+    gchar *opt_keys[] = { "server", "port", "tls", "auth", NULL };
     gboolean parsed;
 
     GHashTable *options = parse_options(&args[args[0] ? 1 : 0], opt_keys, &parsed);
@@ -357,6 +357,16 @@ cmd_connect(ProfWin *window, const char *const command, gchar **args)
             (g_strcmp0(tls_policy, "trust") != 0) &&
             (g_strcmp0(tls_policy, "disable") != 0) &&
             (g_strcmp0(tls_policy, "legacy") != 0)) {
+        cons_bad_cmd_usage(command);
+        cons_show("");
+        options_destroy(options);
+        return TRUE;
+    }
+
+    char *auth_policy = g_hash_table_lookup(options, "auth");
+    if (auth_policy &&
+            (g_strcmp0(auth_policy, "default") != 0) &&
+            (g_strcmp0(auth_policy, "legacy") != 0)) {
         cons_bad_cmd_usage(command);
         cons_show("");
         options_destroy(options);
@@ -405,6 +415,8 @@ cmd_connect(ProfWin *window, const char *const command, gchar **args)
             account_set_port(account, port);
         if (tls_policy != NULL)
             account_set_tls_policy(account, tls_policy);
+        if (auth_policy != NULL)
+            account_set_auth_policy(account, auth_policy);
 
         // use password if set
         if (account->password) {
@@ -440,7 +452,7 @@ cmd_connect(ProfWin *window, const char *const command, gchar **args)
     } else {
         jid = g_utf8_strdown(user, -1);
         char *passwd = ui_ask_password();
-        conn_status = cl_ev_connect_jid(jid, passwd, altdomain, port, tls_policy);
+        conn_status = cl_ev_connect_jid(jid, passwd, altdomain, port, tls_policy, auth_policy);
         free(passwd);
     }
 

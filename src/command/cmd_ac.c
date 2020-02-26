@@ -180,6 +180,7 @@ static Autocomplete omemo_policy_ac;
 static Autocomplete omemo_sendfile_ac;
 static Autocomplete connect_property_ac;
 static Autocomplete tls_property_ac;
+static Autocomplete auth_property_ac;
 static Autocomplete alias_ac;
 static Autocomplete aliases_ac;
 static Autocomplete join_property_ac;
@@ -653,6 +654,7 @@ cmd_ac_init(void)
     autocomplete_add(omemo_sendfile_ac, "off");
 
     connect_property_ac = autocomplete_new();
+    autocomplete_add(connect_property_ac, "auth");
     autocomplete_add(connect_property_ac, "server");
     autocomplete_add(connect_property_ac, "port");
     autocomplete_add(connect_property_ac, "tls");
@@ -663,6 +665,10 @@ cmd_ac_init(void)
     autocomplete_add(tls_property_ac, "trust");
     autocomplete_add(tls_property_ac, "legacy");
     autocomplete_add(tls_property_ac, "disable");
+
+    auth_property_ac = autocomplete_new();
+    autocomplete_add(auth_property_ac, "default");
+    autocomplete_add(auth_property_ac, "legacy");
 
     join_property_ac = autocomplete_new();
     autocomplete_add(join_property_ac, "nick");
@@ -1220,6 +1226,7 @@ cmd_ac_reset(ProfWin *window)
     autocomplete_reset(omemo_sendfile_ac);
     autocomplete_reset(connect_property_ac);
     autocomplete_reset(tls_property_ac);
+    autocomplete_reset(auth_property_ac);
     autocomplete_reset(alias_ac);
     autocomplete_reset(aliases_ac);
     autocomplete_reset(join_property_ac);
@@ -1369,6 +1376,7 @@ cmd_ac_uninit(void)
     autocomplete_free(omemo_sendfile_ac);
     autocomplete_free(connect_property_ac);
     autocomplete_free(tls_property_ac);
+    autocomplete_free(auth_property_ac);
     autocomplete_free(alias_ac);
     autocomplete_free(aliases_ac);
     autocomplete_free(join_property_ac);
@@ -3137,7 +3145,7 @@ _connect_autocomplete(ProfWin *window, const char *const input, gboolean previou
     char *found = NULL;
     gboolean result = FALSE;
 
-    gchar **args = parse_args(input, 1, 7, &result);
+    gchar **args = parse_args(input, 1, 9, &result);
 
     if (result) {
         gboolean space_at_end = g_str_has_suffix(input, " ");
@@ -3199,6 +3207,74 @@ _connect_autocomplete(ProfWin *window, const char *const input, gboolean previou
             GString *beginning = g_string_new("/connect");
             g_string_append_printf(beginning, " %s %s %s %s %s %s", args[0], args[1], args[2], args[3], args[4], args[5]);
             found = autocomplete_param_with_ac(input, beginning->str, tls_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 7 && space_at_end) || (num_args == 8 && !space_at_end)) {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s %s %s %s %s %s", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+            found = autocomplete_param_with_ac(input, beginning->str, connect_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 8 && space_at_end && (g_strcmp0(args[7], "tls") == 0))
+                || (num_args == 9 && (g_strcmp0(args[7], "tls") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s %s %s %s %s %s %s", args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+            found = autocomplete_param_with_ac(input, beginning->str, tls_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+
+        /* auth option */
+
+        if ((num_args == 2 && space_at_end && (g_strcmp0(args[1], "auth") == 0))
+                || (num_args == 3 && (g_strcmp0(args[1], "auth") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s", args[0], args[1]);
+            found = autocomplete_param_with_ac(input, beginning->str, auth_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 4 && space_at_end && (g_strcmp0(args[3], "auth") == 0))
+                || (num_args == 5 && (g_strcmp0(args[3], "auth") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s %s %s", args[0], args[1], args[2], args[3]);
+            found = autocomplete_param_with_ac(input, beginning->str, auth_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 6 && space_at_end && (g_strcmp0(args[5], "auth") == 0))
+                || (num_args == 7 && (g_strcmp0(args[5], "auth") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s %s %s %s %s", args[0], args[1], args[2], args[3], args[4], args[5]);
+            found = autocomplete_param_with_ac(input, beginning->str, auth_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 8 && space_at_end && (g_strcmp0(args[7], "auth") == 0))
+                || (num_args == 9 && (g_strcmp0(args[7], "auth") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/connect");
+            g_string_append_printf(beginning, " %s %s %s %s %s %s %s %s", args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+            found = autocomplete_param_with_ac(input, beginning->str, auth_property_ac, TRUE, previous);
             g_string_free(beginning, TRUE);
             if (found) {
                 g_strfreev(args);
@@ -3407,6 +3483,17 @@ _account_autocomplete(ProfWin *window, const char *const input, gboolean previou
             GString *beginning = g_string_new("/account");
             g_string_append_printf(beginning, " %s %s %s", args[0], args[1], args[2]);
             found = autocomplete_param_with_ac(input, beginning->str, tls_property_ac, TRUE, previous);
+            g_string_free(beginning, TRUE);
+            if (found) {
+                g_strfreev(args);
+                return found;
+            }
+        }
+        if ((num_args == 3 && space_at_end && (g_strcmp0(args[2], "auth") == 0))
+                || (num_args == 4 && (g_strcmp0(args[2], "auth") == 0) && !space_at_end))  {
+            GString *beginning = g_string_new("/account");
+            g_string_append_printf(beginning, " %s %s %s", args[0], args[1], args[2]);
+            found = autocomplete_param_with_ac(input, beginning->str, auth_property_ac, TRUE, previous);
             g_string_free(beginning, TRUE);
             if (found) {
                 g_strfreev(args);

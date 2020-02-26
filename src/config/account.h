@@ -67,6 +67,7 @@ typedef struct prof_account_t {
     gchar *startscript;
     gchar *theme;
     gchar *tls_policy;
+    gchar *auth_policy;
 } ProfAccount;
 
 ProfAccount* account_new(const gchar *const name, const gchar *const jid,
@@ -85,5 +86,6 @@ void account_free(ProfAccount *account);
 void account_set_server(ProfAccount *account, const char *server);
 void account_set_port(ProfAccount *account, int port);
 void account_set_tls_policy(ProfAccount *account, const char *tls_policy);
+void account_set_auth_policy(ProfAccount *account, const char *auth_policy);
 
 #endif

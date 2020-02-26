@@ -175,6 +175,9 @@ account_new(const gchar *const name, const gchar *const jid,
         new_account->tls_policy = NULL;
     }
 
+    /* XXX FIXME Need to add auth_policy */
+    new_account->auth_policy = NULL;
+
     return new_account;
 }
 
@@ -249,6 +252,7 @@ account_free(ProfAccount *account)
     free(account->startscript);
     free(account->theme);
     free(account->tls_policy);
+    free(account->auth_policy);
     g_list_free_full(account->otr_manual, g_free);
     g_list_free_full(account->otr_opportunistic, g_free);
     g_list_free_full(account->otr_always, g_free);
@@ -272,4 +276,10 @@ void account_set_tls_policy(ProfAccount *account, const char *tls_policy)
 {
     free(account->tls_policy);
     account->tls_policy = strdup(tls_policy);
+}
+
+void account_set_auth_policy(ProfAccount *account, const char *auth_policy)
+{
+    free(account->auth_policy);
+    account->auth_policy = strdup(auth_policy);
 }
